@@ -100,6 +100,17 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.getSettings().setBlockNetworkImage(false);
         this.getSettings().setBlockNetworkLoads(false);
 
+        this.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        // http://stackoverflow.com/a/14671256
+        this.getSettings().setAppCacheEnabled(true);
+
+        /*
+        this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT ); // load online by default
+
+        if ( !isNetworkAvailable() ) { // loading offline
+            this.getSettings().setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
+        }
+        */
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             this.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
@@ -107,6 +118,13 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.setWebViewClient(new EventWebClient());
         this.setWebChromeClient(getCustomClient());
     }
+
+    /*private boolean isNetworkAvailable() {
+        final Activity activity = getModule().getActivity();
+        ConnectivityManager connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }*/
 
     public void setCharset(String charset) {
         this.charset = charset;
