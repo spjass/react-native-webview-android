@@ -1,3 +1,28 @@
+# OSX
+#
+.DS_Store
+
+# Xcode
+#
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace
+
+
 *.class
 
 # Mobile Tools for Java (J2ME)
@@ -12,3 +37,16 @@
 hs_err_pid*
 
 .DS_Store
+
+# Android/IJ
+#
+.idea
+.gradle
+local.properties
+android/app/libs
+android/app/
+android/keystores/debug.keystore
+*.keystore
+
+# Back-up
+*~
