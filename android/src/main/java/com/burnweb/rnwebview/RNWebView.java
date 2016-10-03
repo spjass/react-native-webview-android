@@ -2,6 +2,10 @@ package com.burnweb.rnwebview;
 
 import android.annotation.SuppressLint;
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -100,17 +104,18 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.getSettings().setBlockNetworkImage(false);
         this.getSettings().setBlockNetworkLoads(false);
 
-        this.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        // this.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         // http://stackoverflow.com/a/14671256
         this.getSettings().setAppCacheEnabled(true);
+        this.getSettings().setAppCachePath(getModule().getActivity().getApplicationContext().getCacheDir().getAbsolutePath());
 
-        /*
+
         this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT ); // load online by default
 
         if ( !isNetworkAvailable() ) { // loading offline
             this.getSettings().setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
         }
-        */
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             this.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
@@ -119,12 +124,12 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.setWebChromeClient(getCustomClient());
     }
 
-    /*private boolean isNetworkAvailable() {
+    private boolean isNetworkAvailable() {
         final Activity activity = getModule().getActivity();
         ConnectivityManager connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }*/
+    }
 
     public void setCharset(String charset) {
         this.charset = charset;

@@ -1,23 +1,32 @@
 /**
  * @providesModule WebViewAndroid
  */
-'use strict';
 
-try {
-  var React = require('react');
-} catch(ex) {
-  var React = require('react-native');
-}
+import React, { Component } from 'react';
+import {
+  requireNativeComponent,
+  NativeModules,
+  findNodeHandle,
+  View,
+} from 'react-native';
 
-var RN = require("react-native");
+const {
+  UIManager,
+  // RNWebViewAndroid,
+} = NativeModules;
 
-var { requireNativeComponent, NativeModules } = require('react-native');
-var RCTUIManager = NativeModules.UIManager;
+const RNWebViewAndroid = requireNativeComponent('RNWebViewAndroid', null);
 
-var WEBVIEW_REF = 'androidWebView';
+const WebViewState = {
+  IDLE: 0,
+  LOADING: 1,
+  ERROR: 2,
+};
 
-var WebViewAndroid = React.createClass({
-  propTypes: {
+// const WEBVIEW_REF = 'androidWebView';
+
+class WebViewAndroid extends Component {
+  static propTypes = {
     url: React.PropTypes.string,
     source: React.PropTypes.object,
     baseUrl: React.PropTypes.string,
@@ -31,42 +40,86 @@ var WebViewAndroid = React.createClass({
     geolocationEnabled: React.PropTypes.bool,
     allowUrlRedirect: React.PropTypes.bool,
     builtInZoomControls: React.PropTypes.bool,
-    onNavigationStateChange: React.PropTypes.func
-  },
-  _onNavigationStateChange: function(event) {
+    onNavigationStateChange: React.PropTypes.func,
+    startInLoadingState: React.PropTypes.bool,
+    renderLoading: React.PropTypes.func,
+  };
+
+  static defaultProps = {
+    startInLoadingState: false,
+  };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      viewState: props.startInLoadingState ? WebViewState.LOADING : WebViewState.IDLE,
+    };
+
+    this._onNavigationStateChange = this._onNavigationStateChange.bind(this);
+  }
+
+  _onNavigationStateChange(event) {
+    if (event.loading && this.state.viewState !== WebViewState.LOADING) {
+      this.setState({ viewState: WebViewState.LOADING });
+    } else if (!event.loading && this.state.viewState === WebViewState.LOADING) {
+      this.setState({ viewState: WebViewState.IDLE });
+    }
     if (this.props.onNavigationStateChange) {
       this.props.onNavigationStateChange(event.nativeEvent);
     }
-  },
-  goBack: function() {
-    RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
-      RCTUIManager.RNWebViewAndroid.Commands.goBack,
-      null
-    );
-  },
-  goForward: function() {
-    RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
-      RCTUIManager.RNWebViewAndroid.Commands.goForward,
-      null
-    );
-  },
-  reload: function() {
-    RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
-      RCTUIManager.RNWebViewAndroid.Commands.reload,
-      null
-    );
-  },
-  render: function() {
-    return <RNWebViewAndroid ref={WEBVIEW_REF} {...this.props} onNavigationStateChange={this._onNavigationStateChange} />;
-  },
-  _getWebViewHandle: function() {
-    return RN.findNodeHandle(this.refs[WEBVIEW_REF]);
-  },
-});
+  }
 
-var RNWebViewAndroid = requireNativeComponent('RNWebViewAndroid', null);
+  goBack() {
+    UIManager.dispatchViewManagerCommand(
+      this.webViewRef,
+      UIManager.RNWebViewAndroid.Commands.goBack,
+      null
+    );
+  }
 
-module.exports = WebViewAndroid;
+  goForward() {
+    UIManager.dispatchViewManagerCommand(
+      this.webViewRef,
+      UIManager.RNWebViewAndroid.Commands.goForward,
+      null
+    );
+  }
+
+  reload() {
+    UIManager.dispatchViewManagerCommand(
+      this.webViewRef,
+      UIManager.RNWebViewAndroid.Commands.reload,
+      null
+    );
+  }
+
+  render() {
+
+    let otherView = null;
+
+    if (this.state.viewState === WebViewState.LOADING && this.props.renderLoading) {
+      otherView = this.props.renderLoading;
+    }
+
+    const webView = (
+      <RNWebViewAndroid
+        ref={(vw) => this.webViewRef = vw}
+        {...this.props}
+        onNavigationStateChange={this._onNavigationStateChange}
+      />
+    );
+    return (
+      <View style={{ flex: 1 }}>
+        {webView}
+        {otherView}
+      </View>
+    );
+  }
+
+  // _getWebViewHandle() {
+  //   return findNodeHandle(this.refs[WEBVIEW_REF]);
+  // }
+}
+
+export default WebViewAndroid;
