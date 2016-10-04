@@ -1,8 +1,6 @@
 package com.burnweb.rnwebview;
 
 import android.annotation.SuppressLint;
-import com.facebook.react.common.annotations.VisibleForTesting;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -19,18 +17,16 @@ import android.webkit.WebChromeClient;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.common.annotations.VisibleForTesting;
 
 public class RNWebViewModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
     @VisibleForTesting
     public static final String REACT_CLASS = "RNWebViewAndroidModule";
-
-    private RNWebViewPackage aPackage;
-
     /* FOR UPLOAD DIALOG */
     private final static int REQUEST_SELECT_FILE = 1001;
     private final static int REQUEST_SELECT_FILE_LEGACY = 1002;
-
+    private RNWebViewPackage aPackage;
     private ValueCallback<Uri> mUploadMessage = null;
     private ValueCallback<Uri[]> mUploadMessageArr = null;
 
@@ -45,12 +41,12 @@ public class RNWebViewModule extends ReactContextBaseJavaModule implements Activ
         return REACT_CLASS;
     }
 
-    public void setPackage(RNWebViewPackage aPackage) {
-        this.aPackage = aPackage;
-    }
-
     public RNWebViewPackage getPackage() {
         return this.aPackage;
+    }
+
+    public void setPackage(RNWebViewPackage aPackage) {
+        this.aPackage = aPackage;
     }
 
     @SuppressWarnings("unused")
@@ -60,14 +56,14 @@ public class RNWebViewModule extends ReactContextBaseJavaModule implements Activ
 
     public void showAlert(String url, String message, final JsResult result) {
         AlertDialog ad = new AlertDialog.Builder(getCurrentActivity())
-                                .setMessage(message)
-                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        result.confirm();
-                                    }
-                                })
-                                .create();
+                .setMessage(message)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        result.confirm();
+                    }
+                })
+                .create();
 
         ad.show();
     }
@@ -84,7 +80,7 @@ public class RNWebViewModule extends ReactContextBaseJavaModule implements Activ
 
         mUploadMessage = uploadMsg;
 
-        if(acceptType == null || acceptType.isEmpty()) {
+        if (acceptType == null || acceptType.isEmpty()) {
             acceptType = "*/*";
         }
 
@@ -169,6 +165,7 @@ public class RNWebViewModule extends ReactContextBaseJavaModule implements Activ
         this.onActivityResult(requestCode, resultCode, data);
     }
 
-    public void onNewIntent(Intent intent) {}
+    public void onNewIntent(Intent intent) {
+    }
 
 }

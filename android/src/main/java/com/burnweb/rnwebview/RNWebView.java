@@ -1,14 +1,15 @@
 package com.burnweb.rnwebview;
 
 import android.annotation.SuppressLint;
-
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JsResult;
 import android.webkit.ValueCallback;
@@ -17,13 +18,19 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.facebook.react.common.SystemClock;
 import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.common.SystemClock;
+import com.facebook.react.common.annotations.VisibleForTesting;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.EventDispatcher;
 
+import java.util.Arrays;
+
 class RNWebView extends WebView implements LifecycleEventListener {
+
+    @VisibleForTesting
+    public static final String REACT_CLASS = "RNWebViewAndroid";
 
     private final EventDispatcher mEventDispatcher;
     private final RNWebViewManager mViewManager;
@@ -32,59 +39,6 @@ class RNWebView extends WebView implements LifecycleEventListener {
     private String baseUrl = "file:///";
     private String injectedJavaScript = null;
     private boolean allowUrlRedirect = false;
-
-    protected class EventWebClient extends WebViewClient {
-        public boolean shouldOverrideUrlLoading(WebView view, String url){
-            if(RNWebView.this.getAllowUrlRedirect()) {
-                // do your handling codes here, which url is the requested url
-                // probably you need to open that url rather than redirect:
-                view.loadUrl(url);
-
-                return false; // then it is not handled by default action
-            }
-
-            return super.shouldOverrideUrlLoading(view, url);
-        }
-
-        public void onPageFinished(WebView view, String url) {
-            mEventDispatcher.dispatchEvent(new NavigationStateChangeEvent(getId(), SystemClock.nanoTime(), view.getTitle(), false, url, view.canGoBack(), view.canGoForward()));
-
-            if(RNWebView.this.getInjectedJavaScript() != null) {
-                view.loadUrl("javascript:(function() {\n" + RNWebView.this.getInjectedJavaScript() + ";\n})();");
-            }
-        }
-
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            mEventDispatcher.dispatchEvent(new NavigationStateChangeEvent(getId(), SystemClock.nanoTime(), view.getTitle(), true, url, view.canGoBack(), view.canGoForward()));
-        }
-    }
-
-    protected class CustomWebChromeClient extends WebChromeClient {
-        @Override
-        public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
-            getModule().showAlert(url, message, result);
-            return true;
-        }
-
-        // For Android 4.1+
-        @SuppressWarnings("unused")
-        public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
-            getModule().startFileChooserIntent(uploadMsg, acceptType);
-        }
-
-        // For Android 5.0+
-        @SuppressLint("NewApi")
-        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-            return getModule().startFileChooserIntent(filePathCallback, fileChooserParams.createIntent());
-        }
-    }
-
-    protected class GeoWebChromeClient extends CustomWebChromeClient {
-        @Override
-        public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-            callback.invoke(origin, true, false);
-        }
-    }
 
     public RNWebView(RNWebViewManager viewManager, ThemedReactContext reactContext) {
         super(reactContext);
@@ -110,10 +64,10 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.getSettings().setAppCachePath(getModule().getActivity().getApplicationContext().getCacheDir().getAbsolutePath());
 
 
-        this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT ); // load online by default
+        this.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT); // load online by default
 
-        if ( !isNetworkAvailable() ) { // loading offline
-            this.getSettings().setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
+        if (!isNetworkAvailable()) { // loading offline
+            this.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -131,36 +85,36 @@ class RNWebView extends WebView implements LifecycleEventListener {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void setCharset(String charset) {
-        this.charset = charset;
-    }
-
     public String getCharset() {
         return this.charset;
     }
 
-    public void setAllowUrlRedirect(boolean a) {
-        this.allowUrlRedirect = a;
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
     public boolean getAllowUrlRedirect() {
         return this.allowUrlRedirect;
     }
 
-    public void setInjectedJavaScript(String injectedJavaScript) {
-        this.injectedJavaScript = injectedJavaScript;
+    public void setAllowUrlRedirect(boolean a) {
+        this.allowUrlRedirect = a;
     }
 
     public String getInjectedJavaScript() {
         return this.injectedJavaScript;
     }
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+    public void setInjectedJavaScript(String injectedJavaScript) {
+        this.injectedJavaScript = injectedJavaScript;
     }
 
     public String getBaseUrl() {
         return this.baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     public CustomWebChromeClient getCustomClient() {
@@ -194,6 +148,70 @@ class RNWebView extends WebView implements LifecycleEventListener {
     public void onDetachedFromWindow() {
         this.loadDataWithBaseURL(this.getBaseUrl(), "<html></html>", "text/html", this.getCharset(), null);
         super.onDetachedFromWindow();
+    }
+
+    protected class EventWebClient extends WebViewClient {
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (RNWebView.this.getAllowUrlRedirect()) {
+                // do your handling codes here, which url is the requested url
+                // probably you need to open that url rather than redirect:
+                view.loadUrl(url);
+
+                return false; // then it is not handled by default action
+            }
+
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+
+        public void onPageFinished(WebView view, String url) {
+            mEventDispatcher.dispatchEvent(new NavigationStateChangeEvent(getId(), SystemClock.nanoTime(), view.getTitle(), false, url, view.canGoBack(), view.canGoForward()));
+
+            if (RNWebView.this.getInjectedJavaScript() != null) {
+                view.loadUrl("javascript:(function() {\n" + RNWebView.this.getInjectedJavaScript() + ";\n})();");
+            }
+        }
+
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            mEventDispatcher.dispatchEvent(new NavigationStateChangeEvent(getId(), SystemClock.nanoTime(), view.getTitle(), true, url, view.canGoBack(), view.canGoForward()));
+        }
+    }
+
+    protected class CustomWebChromeClient extends WebChromeClient {
+        @Override
+        public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+            getModule().showAlert(url, message, result);
+            return true;
+        }
+
+        // For Android 4.1+
+        @SuppressWarnings("unused")
+        public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
+            getModule().startFileChooserIntent(uploadMsg, acceptType);
+        }
+
+        // For Android 5.0+
+        @SuppressLint("NewApi")
+        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+            Intent i = null;
+            for (String accept : fileChooserParams.getAcceptTypes()) {
+                if (accept.startsWith(".")) {
+                    Intent target = new Intent(Intent.ACTION_GET_CONTENT);
+                    target.addCategory(Intent.CATEGORY_OPENABLE);
+                    target.setType("application/" + accept.substring(1));
+                    i = Intent.createChooser(target, "Open " + accept.substring(1));
+                    break;
+                }
+            }
+            if (i == null) i = fileChooserParams.createIntent();
+            return getModule().startFileChooserIntent(filePathCallback, i);
+        }
+    }
+
+    protected class GeoWebChromeClient extends CustomWebChromeClient {
+        @Override
+        public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+            callback.invoke(origin, true, false);
+        }
     }
 
 }
