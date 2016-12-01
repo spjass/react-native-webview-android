@@ -72,7 +72,7 @@ class WebViewAndroid extends Component {
 
   goBack() {
     UIManager.dispatchViewManagerCommand(
-      this.webViewRef,
+      this._getWebViewHandle(),
       UIManager.RNWebViewAndroid.Commands.goBack,
       null
     );
@@ -80,7 +80,7 @@ class WebViewAndroid extends Component {
 
   goForward() {
     UIManager.dispatchViewManagerCommand(
-      this.webViewRef,
+      this._getWebViewHandle(),
       UIManager.RNWebViewAndroid.Commands.goForward,
       null
     );
@@ -88,7 +88,7 @@ class WebViewAndroid extends Component {
 
   reload() {
     UIManager.dispatchViewManagerCommand(
-      this.webViewRef,
+      this._getWebViewHandle(),
       UIManager.RNWebViewAndroid.Commands.reload,
       null
     );
@@ -117,9 +117,9 @@ class WebViewAndroid extends Component {
     );
   }
 
-  // _getWebViewHandle() {
-  //   return findNodeHandle(this.refs[WEBVIEW_REF]);
-  // }
+  _getWebViewHandle() {
+    return findNodeHandle(this.webViewRef);
+  }
 }
 
 export default WebViewAndroid;
