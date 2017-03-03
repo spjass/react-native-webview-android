@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.view.ViewGroup.LayoutParams;
+import android.webkit.GeolocationPermissions;
 import android.webkit.WebSettings;
 import android.webkit.CookieManager;
 
@@ -18,6 +19,11 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.common.annotations.VisibleForTesting;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Nullable;
+
 
 public class RNWebViewManager extends SimpleViewManager<RNWebView> {
 
@@ -41,6 +47,14 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
     @Override
     public RNWebView createViewInstance(ThemedReactContext context) {
         RNWebView rnwv = new RNWebView(this, context);
+
+        rnwv.setWebChromeClient(new VideoWebChromeClient(context.getCurrentActivity(), rnwv) {
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                callback.invoke(origin, true, false);
+            }
+
+        });
 
         // Fixes broken full-screen modals/galleries due to body
         // height being 0.
