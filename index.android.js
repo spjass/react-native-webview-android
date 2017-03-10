@@ -21,7 +21,6 @@ const WebViewState = {
   IDLE: 0,
   LOADING: 1,
   ERROR: 2,
-  STOP: 3,
 };
 
 // const WEBVIEW_REF = 'androidWebView';
@@ -102,6 +101,7 @@ class WebViewAndroid extends Component {
       null
     );
   }
+
 
   render() {
 

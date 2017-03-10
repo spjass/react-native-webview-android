@@ -5,16 +5,20 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.util.Log;
 import android.view.ViewGroup.LayoutParams;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebSettings;
 import android.webkit.CookieManager;
 
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.IllegalViewOperationException;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
@@ -31,6 +35,7 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
     public static final int GO_FORWARD = 2;
     public static final int RELOAD = 3;
     public static final int STOP = 4;
+    public static final int GET_URL = 5;
 
 
     private static final String HTML_MIME_TYPE = "text/html";
@@ -185,13 +190,32 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
         view.setInjectedJavaScript(injectedJavaScript);
     }
 
+    @ReactMethod
+    public void getCurrentUrl(
+            RNWebView view,
+            int tag,
+            int ancestorTag,
+            Callback errorCallback,
+            Callback successCallback) {
+
+        try {
+            successCallback.invoke(view.getUrl());
+        } catch(IllegalViewOperationException e) {
+            errorCallback.invoke(e.getMessage());
+        }
+    }
+
+
+
+
     @Override
     public @Nullable Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
             "goBack", GO_BACK,
             "goForward", GO_FORWARD,
             "reload", RELOAD,
-            "stopLoading", STOP
+            "stopLoading", STOP,
+            "getUrl", GET_URL
         );
     }
 
@@ -209,6 +233,10 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
                 break;
             case STOP:
                 view.stopLoading();
+                break;
+            case GET_URL:
+                view.getUrl();
+                Log.d("LifeLearn", view.getUrl() + "");
                 break;
         }
     }
