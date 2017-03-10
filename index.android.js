@@ -21,6 +21,7 @@ const WebViewState = {
   IDLE: 0,
   LOADING: 1,
   ERROR: 2,
+  STOP: 3,
 };
 
 // const WEBVIEW_REF = 'androidWebView';
@@ -90,6 +91,14 @@ class WebViewAndroid extends Component {
     UIManager.dispatchViewManagerCommand(
       this._getWebViewHandle(),
       UIManager.RNWebViewAndroid.Commands.reload,
+      null
+    );
+  }
+
+  stopLoading() {
+    UIManager.dispatchViewManagerCommand(
+      this._getWebViewHandle(),
+      UIManager.RNWebViewAndroid.Commands.stopLoading,
       null
     );
   }
